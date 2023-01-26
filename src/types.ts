@@ -172,6 +172,21 @@ interface ClassOptions {
 
 type rowRenderType = ((row: object, tr: object, index: number) => elementNodeType | void);
 
+export class RemoteResultsData {
+    totalRecords?: number
+
+    currentPage?: number
+
+    message?:string
+}
+
+interface RemoteOptions {
+    url?:string;
+    method?:"GET" | "POST";
+    token?:string;
+    resultsData?:RemoteResultsData;
+}
+
 interface DataTableOptions{
     /**Controls various aspects of individual or groups of columns. Should be an array of objects with the following properties:
      *
@@ -369,6 +384,11 @@ interface DataTableOptions{
      */
     truncatePager?:boolean;
 
+
+    /**
+     * used to implement remote fetching
+     */
+    remote?:RemoteOptions;
 }
 
 interface singleColumnSettingsType {

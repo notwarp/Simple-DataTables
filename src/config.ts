@@ -1,4 +1,4 @@
-import {DataTableOptions} from "./types"
+import {DataTableOptions, RemoteResultsData} from "./types"
 
 /**
  * Default configuration
@@ -15,7 +15,7 @@ export const defaultConfig: DataTableOptions = {
     // Pagination
     paging: true,
     perPage: 10,
-    perPageSelect: [5, 10, 15, 20, 25],
+    perPageSelect: [5, 10, 15, 20, 25, 50, 100],
     nextPrev: true,
     firstLast: false,
     prevText: "&lsaquo;",
@@ -76,5 +76,12 @@ export const defaultConfig: DataTableOptions = {
         table: "datatable-table",
         top: "datatable-top",
         wrapper: "datatable-wrapper"
+    },
+
+    remote: {
+        url: "",
+        method: "GET",
+        token: "",
+        resultsData: new RemoteResultsData()
     }
 }

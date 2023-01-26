@@ -1,3 +1,4 @@
+import axios from "axios"
 import {DiffDOM, nodeToObj} from "diff-dom"
 
 import {dataToVirtualDOM, headingsToVirtualHeaderRowDOM} from "./virtual_dom"
@@ -91,6 +92,8 @@ export class DataTable {
 
     wrapper: HTMLElement
 
+    hasRemote: boolean
+
     constructor(table: HTMLTableElement | string, options: DataTableOptions = {}) {
 
         this.dom = typeof table === "string" ? document.querySelector(table) : table
@@ -112,6 +115,10 @@ export class DataTable {
             classes: {
                 ...defaultConfig.classes,
                 ...options.classes
+            },
+            remote: {
+                ...defaultConfig.remote,
+                ...options.remote
             }
         }
 
@@ -139,7 +146,13 @@ export class DataTable {
 
         this.filterStates = []
 
-        this.init()
+        this.hasRemote = options.remote !== undefined
+
+        if (this.hasRemote) {
+            this.remote()
+        } else {
+            this.init()
+        }
     }
 
     /**
@@ -161,7 +174,7 @@ export class DataTable {
 
 
         this._render()
-
+        console.log("INIT END")
         setTimeout(() => {
             this.emit("datatable.init")
             this.initialized = true
@@ -353,7 +366,7 @@ export class DataTable {
             f = current * this.options.perPage
             t = f + this.pages[current].length
             f = f + 1
-            items = this.searching ? this.searchData.length : this.data.data.length
+            items = this.searching ? this.searchData.length : (!this.hasRemote) ? this.data.data.length : this.options.remote.resultsData.totalRecords
         }
 
         if (this.label && this.options.labels.info.length) {
@@ -716,11 +729,22 @@ export class DataTable {
             )
         }
 
-        if (this.options.paging && this.options.perPage > 0) {
+        if (this.options.paging && this.options.perPage > 0 && !this.hasRemote) {
             // Check for hidden columns
             this.pages = rows
-                .map((row: {row: cellType[], index: number}, i: number) => i % this.options.perPage === 0 ? rows.slice(i, i + this.options.perPage) : null)
-                .filter((page: {row: cellType[], index: number}[]) => page)
+                .map((row: { row: cellType[], index: number }, i: number) => i % this.options.perPage === 0 ? rows.slice(i, i + this.options.perPage) : null)
+                .filter((page: { row: cellType[], index: number }[]) => page)
+        } else if (this.hasRemote) {
+            this.pages = rows
+                .map((row: { row: cellType[], index: number }, i: number) => i % this.options.perPage === 0 ? rows.slice(i, i + this.options.perPage) : null)
+                .filter((page: { row: cellType[], index: number }[]) => page)
+            for (let index = 1; index < this.options.remote.resultsData.totalRecords/this.options.perPage; index++) {
+                const arrayRows = []
+                for (let j = 0; j < this.options.perPage; j++) {
+                    arrayRows.push(new Rows(this))
+                }
+                this.pages.push(arrayRows)
+            }
         } else {
             this.pages = [rows]
         }
@@ -870,6 +894,67 @@ export class DataTable {
         }
 
         this.update(true)
+    }
+
+
+    /**
+     * Remote fetch
+     */
+
+    remote() {
+        const remote = this.options.remote
+        switch (remote.method) {
+        case "GET":
+            axios.get(remote.url)
+                .then(r => {
+                    console.log(r)
+                })
+                .catch(error => {
+                    console.log(error)
+                })
+                .finally(() => {
+                    console.log("FINISHFETCH")
+                })
+            break
+        case "POST":
+            axios.post(remote.url,
+                {
+                    limit: this.options.perPage,
+                    offset: this.options.perPage * this.currentPage
+                },
+                {
+                    headers: {
+                        "X-CSRF-Token": remote.token,
+                        Accept: "application/json",
+                        "Content-Type": "application/json;charset=UTF-8"
+                    }
+                }
+            )
+                .then(r => {
+                    const obj = {
+                        headings: Object.keys(r.data.data[0]),
+                        data: []
+                    }
+                    for ( let i = 0; i < r.data.data.length; i++ ) {
+                        obj.data[i] = []
+                        for (const p in r.data.data[i]) {
+                            if ( r.data.data[i].hasOwnProperty(p) ) {
+                                obj.data[i].push(r.data.data[i][p])
+                            }
+                        }
+                    }
+                    this.options.data = obj
+                    this.options.remote.resultsData.totalRecords = r.data.total
+                    this.init()
+                })
+                .catch(error => {
+                    console.log(error)
+                })
+                .finally(() => {
+                    console.log("FINISHFETCH")
+                })
+            break
+        }
     }
 
     /**
