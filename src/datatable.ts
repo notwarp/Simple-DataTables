@@ -149,7 +149,7 @@ export class DataTable {
         this.hasRemote = options.remote !== undefined
 
         if (this.hasRemote) {
-            this.remote()
+            this._remote()
         } else {
             this.init()
         }
@@ -174,13 +174,71 @@ export class DataTable {
 
 
         this._render()
-        console.log("INIT END")
         setTimeout(() => {
             this.emit("datatable.init")
             this.initialized = true
         }, 10)
     }
 
+    /**
+     * Remote fetch
+     */
+
+    _remote() {
+        const remote = this.options.remote
+        switch (remote.method) {
+        case "GET":
+            axios.get(remote.url)
+                .then(r => {
+                    console.log(r)
+                })
+                .catch(error => {
+                    console.log(error)
+                })
+                .finally(() => {
+                    console.log("FINISHFETCH")
+                })
+            break
+        case "POST":
+            axios.post(remote.url,
+                {
+                    limit: this.options.perPage,
+                    offset: this.options.perPage * this.currentPage
+                },
+                {
+                    headers: {
+                        "X-CSRF-Token": remote.token,
+                        Accept: "application/json",
+                        "Content-Type": "application/json;charset=UTF-8"
+                    }
+                }
+            )
+                .then(r => {
+                    const obj = {
+                        headings: Object.keys(r.data.data[0]),
+                        data: []
+                    }
+                    for ( let i = 0; i < r.data.data.length; i++ ) {
+                        obj.data[i] = []
+                        for (const p in r.data.data[i]) {
+                            if ( r.data.data[i].hasOwnProperty(p) ) {
+                                obj.data[i].push(r.data.data[i][p])
+                            }
+                        }
+                    }
+                    this.options.data = obj
+                    this.options.remote.resultsData.totalRecords = r.data.total
+                    this.init()
+                })
+                .catch(error => {
+                    console.log(error)
+                })
+                .finally(() => {
+                    console.log("FINISH FETCH")
+                })
+            break
+        }
+    }
 
     /**
      * Render the instance
@@ -842,7 +900,13 @@ export class DataTable {
         if (page > this.pages.length || page < 0) {
             return false
         }
-
+        // if (this.hasRemote) {
+        //     const arrayRows = []
+        //     for (let j = 0; j < this.options.perPage; j++) {
+        //         arrayRows.push(new Rows(this))
+        //     }
+        //     this.pages[this.currentPage - 1] = arrayRows
+        // }
         this._renderPage(lastRowCursor)
         this._renderPager()
 
@@ -893,67 +957,6 @@ export class DataTable {
         }
 
         this.update(true)
-    }
-
-
-    /**
-     * Remote fetch
-     */
-
-    remote() {
-        const remote = this.options.remote
-        switch (remote.method) {
-        case "GET":
-            axios.get(remote.url)
-                .then(r => {
-                    console.log(r)
-                })
-                .catch(error => {
-                    console.log(error)
-                })
-                .finally(() => {
-                    console.log("FINISHFETCH")
-                })
-            break
-        case "POST":
-            axios.post(remote.url,
-                {
-                    limit: this.options.perPage,
-                    offset: this.options.perPage * this.currentPage
-                },
-                {
-                    headers: {
-                        "X-CSRF-Token": remote.token,
-                        Accept: "application/json",
-                        "Content-Type": "application/json;charset=UTF-8"
-                    }
-                }
-            )
-                .then(r => {
-                    const obj = {
-                        headings: Object.keys(r.data.data[0]),
-                        data: []
-                    }
-                    for ( let i = 0; i < r.data.data.length; i++ ) {
-                        obj.data[i] = []
-                        for (const p in r.data.data[i]) {
-                            if ( r.data.data[i].hasOwnProperty(p) ) {
-                                obj.data[i].push(r.data.data[i][p])
-                            }
-                        }
-                    }
-                    this.options.data = obj
-                    this.options.remote.resultsData.totalRecords = r.data.total
-                    this.init()
-                })
-                .catch(error => {
-                    console.log(error)
-                })
-                .finally(() => {
-                    console.log("FINISHFETCH")
-                })
-            break
-        }
     }
 
     /**
