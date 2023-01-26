@@ -88,6 +88,8 @@ export class DataTable {
 
     wrapperDOM: HTMLElement
 
+    hasRemote : boolean
+
     constructor(table: HTMLTableElement | string, options: DataTableOptions = {}) {
 
 
@@ -112,15 +114,23 @@ export class DataTable {
             ...options.classes
         }
 
+        const remote = {
+            ...defaultConfig.remote,
+            ...options.remote
+        }
+
         // user options
         this.options = {
             ...defaultConfig,
             ...options,
             labels,
-            classes
+            classes,
+            remote
         }
 
         this._initialInnerHTML = this.options.destroyable ? this.dom.innerHTML : "" // preserve in case of later destruction
+
+        this.hasRemote = this.options.remote != undefined
 
         if (this.options.tabIndex) {
             this.dom.tabIndex = this.options.tabIndex

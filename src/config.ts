@@ -96,10 +96,7 @@ export const defaultConfig: DataTableConfiguration = {
         wrapper: "datatable-wrapper"
     },
 
-    remote: {
-        url: "",
-        method: "GET",
-        token: "",
-        resultsData: new RemoteResultsData()
-    }
+    remote: undefined,
+
+    hasRemote: false
 }
