@@ -99,8 +99,11 @@ export class Columns {
     /**
      * Check column(s) visibility
      */
-    visible(columns: number | number[]) {
+    visible(columns: number | number[] | undefined) {
 
+        if (columns === undefined) {
+            columns = [...Array(this.dt.data.headings.length).keys()]
+        }
         if (Array.isArray(columns)) {
             return columns.map(index => !this.settings[index]?.hidden)
         }
@@ -299,8 +302,8 @@ export class Columns {
 
         this._state.sort = {column: index,
             dir}
-        if (this.dt._searchQuery) {
-            this.dt.search(this.dt._searchQuery)
+        if (this.dt._searchQueries.length) {
+            this.dt.multiSearch(this.dt._searchQueries)
             this.dt.emit("datatable.sort", index, dir)
         } else if (!init) {
             this.dt._currentPage = 1

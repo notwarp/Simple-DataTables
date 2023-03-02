@@ -4,7 +4,7 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgo=">
-        <title>Simple</title>
+        <title>Column filters</title>
 
         <!-- DataTable Styles -->
         <link rel="stylesheet" href="../dist/css/style.css">
@@ -21,13 +21,11 @@
         </style>
     </head>
     <body>
-        <h1>Simple</h1>
-        <table class="table" id="simple">
+        <h1>Column filters</h1>
+        <table class="table">
             <thead>
                 <tr>
-                    <th>
-                        <b>N</b>ame
-                    </th>
+                    <th>Name</th>
                     <th>Ext.</th>
                     <th>City</th>
                     <th data-type="date" data-format="YYYY/DD/MM">Start Date</th>
@@ -756,7 +754,31 @@
                         cellClass: "green",
                         headerClass: "red"
                     }
-                ]
+                ],
+                tableRender: (_data, table, type) => {
+                    if (type === "print") {
+                        return table
+                    }
+                    const tHead = table.childNodes[0]
+                    const filterHeaders = {
+                        nodeName: "TR",
+                        childNodes: tHead.childNodes[0].childNodes.map(
+                            (_th, index) => ({nodeName: "TH",
+                                childNodes: [
+                                    {
+                                        nodeName: "INPUT",
+                                        attributes: {
+                                            class: "datatable-input",
+                                            type: "search",
+                                            "data-columns": `[${index}]`
+                                        }
+                                    }
+                                ]})
+                        )
+                    }
+                    tHead.childNodes.push(filterHeaders)
+                    return table
+                }
 })
 
         </script>

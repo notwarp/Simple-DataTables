@@ -4,7 +4,7 @@
 ### Default
 
 ```javascript
-(options) => `<div class='${options.classes.top}'>
+(options, dom) => `<div class='${options.classes.top}'>
     ${
     options.paging && options.perPageSelect ?
         `<div class='${options.classes.dropdown}'>
@@ -17,7 +17,7 @@
     ${
     options.searchable ?
         `<div class='${options.classes.search}'>
-            <input class='${options.classes.input}' placeholder='${options.labels.placeholder}' type='text'>
+            <input class='${options.classes.input}' placeholder='${options.labels.placeholder}' type='search' title='${options.labels.searchTitle}'${dom.id ? ` aria-controls="${dom.id}"` : ""}>
         </div>` :
         ""
 }

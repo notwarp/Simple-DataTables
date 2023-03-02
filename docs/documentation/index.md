@@ -17,6 +17,7 @@
 * [datatable.sort](Events#datatablesort)
 * [datatable.perpage](Events#datatableperpage)
 * [datatable.search](Events#datatablesearch)
+* [datatable.multisearch](Events#datatablesearch)
 * [datatable.selectrow](Events#datatableselectrow)
 
 #### Options
@@ -31,7 +32,6 @@
 * [header](header)
 * [hiddenHeader](hiddenHeader)
 * [labels](labels)
-* [layout](layout)
 * [lastText](lastText)
 * [nextPrev](nextPrev)
 * [nextText](nextText)
@@ -45,6 +45,7 @@
 * [truncatePager](truncatePager)
 * [rowNavigation](rowNavigation)
 * [tabIndex](tabIndex)
+* [template](template)
 
 
 #### Properties
@@ -74,7 +75,9 @@
 * [refresh()](refresh())
 * [page()](page())
 * [insert()](insert())
-* [setMessage()](setmessage())
+* [setMessage()](setMessage())
 * [destroy()](destroy())
 * [init()](init())
 * [print()](print())
+* [search()](search())
+* [multiSearch()](multiSearch())

@@ -7,8 +7,9 @@ Customise the displayed labels. (v1.0.6 and above)
 ```javascript
 labels: {
     placeholder: "Search...",
-    perPage: "{select} entries per page",
-    noRows: "No entries to found",
+    searchTitle: "Search within table",
+    perPage: "entries per page",
+    noRows: "No entries found",
     info: "Showing {start} to {end} of {rows} entries",
     noResults: "No results match your search query",
 }
@@ -31,9 +32,14 @@ The strings wrapped in curly braces represent variables that are inserted.
           <td>None</td>
     </tr>
   	<tr>
+          <td><code>searchTitle</code></td>
+          <td>Sets the title of the search input</td>
+          <td>None</td>
+    </tr>
+  	<tr>
           <td><code>perPage</code></td>
           <td>Sets the per-page dropdown's label</td>
-          <td><code>{select}</code> - the per-page dropdown (<code class="danger">required</code>)</td>
+          <td>None</td>
     </tr>
   	<tr>
           <td><code>noRows</code></td>
@@ -59,7 +65,8 @@ The strings wrapped in curly braces represent variables that are inserted.
 ```javascript
 labels: {
     placeholder: "Search employees...",
-    perPage: "Show {select} employees per page",
+    searchTitle: "Search within employees",
+    perPage: "employees per page",
     noRows: "No employees to display",
     info: "Showing {start} to {end} of {rows} employees (Page {page} of {pages} pages)",
 },

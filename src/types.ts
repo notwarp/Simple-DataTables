@@ -30,7 +30,7 @@ type inputCellType = cellType | string | number | boolean;
 
 interface headerCellType {
     data: string | number | boolean | elementNodeType[] | object;
-    type?: "html";
+    type?: ("html" | "string");
     text?: string;
 }
 
@@ -89,10 +89,13 @@ interface LabelsConfiguration {
      */
     placeholder: string;
     /**
-     * default: '{select} entries per page'
+     * default: 'Search within table'
+     * Sets the title of the search input.
+     */
+    searchTitle: string;
+    /**
+     * default: 'entries per page'
      * Sets the per-page dropdown's label
-     *
-     * {select} - the per-page dropdown (required)
      */
     perPage: string;
     /**
@@ -249,14 +252,15 @@ interface DataTableConfiguration {
      * labels: {
      *
             placeholder: "Search...",
-            perPage: "{select} entries per page",
+            searchTitle: "Search within table",
+            perPage: "entries per page",
             noRows: "No entries to found",
             info: "Showing {start} to {end} of {rows} entries",
         }
      *
      * Docs : https://fiduswriter.github.io/simple-datatables/documentation/labels
      */
-    template: (DataTableConfiguration) => string;
+    template: (DataTableConfiguration, HTMLTableElement) => string;
     /**
      * Allows for custom arranging of the DOM elements in the top and bottom containers. There are for 4 variables you can utilize:
      *
