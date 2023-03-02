@@ -229,9 +229,9 @@ export class DataTable {
                     }
                     for ( let i = 0; i < r.data.data.length; i++ ) {
                         obj.data[i] = []
-                        for (const p in r.data.data[i]) {
-                            if ( r.data.data[i].hasOwnProperty(p) ) {
-                                obj.data[i].push(r.data.data[i][p])
+                        for (const prop in r.data.data[i]) {
+                            if ( r.data.data[i].hasOwnProperty(prop) ) {
+                                obj.data[i].push(r.data.data[i][prop])
                             }
                         }
                     }
@@ -243,7 +243,7 @@ export class DataTable {
                     console.log(error)
                 })
                 .finally(() => {
-                    console.log("FINISHFETCH")
+                    console.log("FINISHFETCH 7.01")
                 })
         }
     }
