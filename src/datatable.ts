@@ -12,8 +12,9 @@ import {
     inputCellType,
     elementNodeType,
     renderOptions,
-    TableDataType
+    TableDataType, RemoteResultDatas
 } from "./types"
+import axios from "axios"
 import {DiffDOM, nodeToObj} from "diff-dom"
 
 import {dataToVirtualDOM, headingsToVirtualHeaderRowDOM} from "./virtual_dom"
@@ -115,7 +116,6 @@ export class DataTable {
         }
 
         const remote = {
-            ...defaultConfig.remote,
             ...options.remote
         }
 
@@ -130,7 +130,7 @@ export class DataTable {
 
         this._initialInnerHTML = this.options.destroyable ? this.dom.innerHTML : "" // preserve in case of later destruction
 
-        this.hasRemote = this.options.remote != undefined
+        this.hasRemote = Object.keys(this.options.remote).length !== 0
 
         if (this.options.tabIndex) {
             this.dom.tabIndex = this.options.tabIndex
@@ -152,13 +152,15 @@ export class DataTable {
         this.hasHeadings = false
         this.hasRows = false
 
-        this.init()
+        this.init().catch(() => {
+            this.setMessage("Something went wrong during fetching remote data.")
+        })
     }
 
     /**
      * Initialize the instance
      */
-    init() {
+    async init() {
         if (this.initialized || this.dom.classList.contains(this.options.classes.table)) {
             return false
         }
@@ -169,7 +171,9 @@ export class DataTable {
 
         this.rows = new Rows(this)
         this.columns = new Columns(this)
-
+        if (this.hasRemote) {
+            await this._remoteFetch()
+        }
         this.data = readTableData(this.options.data, this.dom, this.columns.settings, this.options.type, this.options.format)
 
         this._render()
@@ -180,6 +184,70 @@ export class DataTable {
         }, 10)
     }
 
+
+    /**
+     * Remote fetch
+     */
+
+    _remoteFetch (sort: object|boolean = undefined) {
+        const remote = this.options.remote
+        const remoteBodyDatas = {
+            limit: this.options.perPage,
+            offset: this.options.perPage * this._currentPage,
+            sort: null
+        }
+        if (sort) {
+            console.log(this.columns._state.sort)
+            remoteBodyDatas.sort = sort
+        }
+        switch (remote.method) {
+        case "GET":
+            return axios.get(remote.url)
+                .then(r => {
+                    console.log(r)
+                })
+                .catch(error => {
+                    console.log(error)
+                })
+                .finally(() => {
+                    console.log("FINISHFETCH")
+                })
+        case "POST":
+            return axios.post(remote.url,
+                remoteBodyDatas,
+                {
+                    headers: {
+                        "X-CSRF-Token": remote.token,
+                        Accept: "application/json",
+                        "Content-Type": "application/json;charset=UTF-8"
+                    }
+                }
+            )
+                .then(r => {
+                    const obj = {
+                        headings: Object.keys(r.data.data[0]),
+                        data: []
+                    }
+                    for ( let i = 0; i < r.data.data.length; i++ ) {
+                        obj.data[i] = []
+                        for (const p in r.data.data[i]) {
+                            if ( r.data.data[i].hasOwnProperty(p) ) {
+                                obj.data[i].push(r.data.data[i][p])
+                            }
+                        }
+                    }
+                    this.options.data = obj
+                    this.options.remote.resultsData = new RemoteResultDatas()
+                    this.options.remote.resultsData.totalRecords = r.data.total
+                })
+                .catch(error => {
+                    console.log(error)
+                })
+                .finally(() => {
+                    console.log("FINISHFETCH")
+                })
+        }
+    }
 
     /**
      * Render the instance
@@ -338,7 +406,7 @@ export class DataTable {
             f = current * this.options.perPage
             t = f + this.pages[current].length
             f = f + 1
-            items = this._searchQuery ? this._searchData.length : this.data.data.length
+            items = this._searchQuery ? this._searchData.length : (!this.hasRemote) ? this.data.data.length : this.options.remote.resultsData.totalRecords
         }
 
         if (this._label && this.options.labels.info.length) {
@@ -492,7 +560,7 @@ export class DataTable {
         }
 
         // Pager(s) / sorting
-        this.wrapperDOM.addEventListener("click", (event: Event) => {
+        this.wrapperDOM.addEventListener("click", async (event: Event) => {
             const target = event.target as Element
             const hyperlink = target.closest("a")
             if (!hyperlink) {
@@ -507,6 +575,9 @@ export class DataTable {
             ) {
                 const visibleIndex = Array.from(hyperlink.parentElement.parentElement.children).indexOf(hyperlink.parentElement)
                 const columnIndex = visibleToColumnIndex(visibleIndex, this.columns.settings)
+                if (this.hasRemote) {
+                    await this._remoteFetch(this.columns._state.sort).catch(() => this.setMessage("Something went wrong during sorting remote data"))
+                }
                 this.columns.sort(columnIndex)
                 event.preventDefault()
             } else if (
@@ -677,6 +748,11 @@ export class DataTable {
             this.pages = rows
                 .map((row: {row: cellType[], index: number}, i: number) => i % this.options.perPage === 0 ? rows.slice(i, i + this.options.perPage) : null)
                 .filter((page: {row: cellType[], index: number}[]) => page)
+            if (this.hasRemote) {
+                for (let index = 1; index < this.options.remote.resultsData.totalRecords/this.options.perPage; index++) {
+                    this.pages.push([])
+                }
+            }
         } else {
             this.pages = [rows]
         }

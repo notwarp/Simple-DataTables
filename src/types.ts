@@ -155,7 +155,7 @@ type rowRenderType = ((row: object, tr: object, index: number) => elementNodeTyp
 type tableRenderType = ((data: object, table: elementNodeType, type: string) => elementNodeType | void);
 // Type can be 'main', 'print', 'header' or 'message'
 
-interface RemoteResultDatas {
+class RemoteResultDatas {
     totalRecords?: number
 
     currentPage?: number
@@ -167,7 +167,7 @@ interface RemoteOptions {
     url?:string;
     method?:"GET" | "POST";
     token?:string;
-    resultsData?:RemoteResultDatas;
+    resultsData?: RemoteResultDatas;
 }
 
 interface DataTableConfiguration {
@@ -360,8 +360,6 @@ interface DataTableConfiguration {
      * Truncate the page links to prevent overflow with large datasets.
      */
     remote: RemoteOptions;
-
-    hasRemote: boolean;
 }
 
 interface DataTableOptions extends DeepPartial<DataTableConfiguration> {
@@ -416,6 +414,7 @@ export {
     columnsStateType,
     DataOption,
     DataTableConfiguration,
+    RemoteResultDatas,
     DataTableOptions,
     filterStateType,
     headerCellType,

@@ -96,7 +96,5 @@ export const defaultConfig: DataTableConfiguration = {
         wrapper: "datatable-wrapper"
     },
 
-    remote: undefined,
-
-    hasRemote: false
+    remote: undefined
 }
